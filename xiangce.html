@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<title>calbum</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+	<script src="js/zepto.min.js"></script>
+	<script src="js/touch.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/animate.css">
+	<style type="text/css">
+	body,ul,li{margin: 0; padding: 0;list-style: none;}
+	body{background: black;}
+	li{float: left;display:inline-block;overflow: hidden;}
+	</style>
+</head>
+<body>
+<ul>
+</ul>
+<div id="container"><canvas id="container_canvas"></canvas></div>
+<script>
+	var win = $(window);
+	var srcs = ['',];
+	var large_srcs = ['',]
+	for (var i = 1; i <= 17; i++) {
+			var src = 'resource/'+i+'.jpg';
+			var large_src ='resource/large.'+i+'.jpg'
+			srcs.push(src);
+			large_srcs.push(large_src);
+		}
+	var render = function(){
+		for (var i = 1; i < srcs.length; i++) {
+			$('ul').append('<li id=li_'+i+'><canvas><canvas></li>');
+			var padding = pad =  2;if(i%4==1){pad=0}
+			$('#li_'+i).css({
+				width:Math.floor((win.width()-padding*3)/4)+'px',
+				height:Math.floor((win.width()-padding*3)/4)+'px',
+				paddingTop:'2px',
+				paddingLeft:pad+'px',
+			}).addClass('animated bounceIn');
+			var time =setTimeout(function(){$('li').removeClass('animated bounceIn');},1000);
+			var imgObj = new Image();
+				imgObj.src=srcs[i];
+				imgObj.index = i;
+				imgObj.onload=function(){
+					var select = '#li_'+this.index+' canvas';
+					var cxt = $(select)[0].getContext('2d');
+					cxt.canvas.width = this.width;
+					cxt.canvas.height = this.height;
+					cxt.drawImage(this,0,0); 
+				}
+		}
+	}
+	$('#container').css({width:win.width(),height:win.height(),background:'black',display:'none',position:'absolute',left:'0',top:'0',textAlign:'center',overflow:'hidden',});
+	var cid;
+	var render_large = function(id,animate){
+		var _id = cid = parseInt(id.replace(/li_/,''));
+		$('#container').show();
+		$('#container_canvas').addClass(animate);
+		var imgObj = new Image();
+			imgObj.src = large_srcs[_id];
+			imgObj.onload=function(){
+				var cxt = $('#container_canvas')[0].getContext('2d');
+				if(this.height/this.width>1.2){
+					var rlw = win.width() * this.width / this.height;
+					cxt.canvas.width = rlw;
+					cxt.canvas.height = win.height();
+					$('#container_canvas').css('padding-top','0px');
+					cxt.drawImage(this,0,0,rlw,win.height());
+				}else{
+					var rlh = win.width()*this.height/this.width;
+					cxt.canvas.width = win.width();
+					cxt.canvas.height = rlh;
+					$('#container_canvas').css('padding-top',(win.height()-rlh)/2+'px');
+					cxt.drawImage(this,0,0,win.width(),rlh);
+				}
+			var time =setTimeout(function(){$('#container_canvas').removeClass(animate);},1000);
+			}
+	}
+	$('ul').delegate('li','tap',function(){
+		render_large($(this).attr('id'),'animated fadeIn');
+	})
+	$('#container').tap(function(){
+		$('#container').hide();
+		$('li').addClass('animated bounceIn');
+	var time =setTimeout(function(){$('li').removeClass('animated bounceIn');},1000);
+	}).swipeLeft(function(){if(cid<large_srcs.length-1)cid++;cid+='';render_large(cid,'animated bounceInRight')}).swipeRight(function(){if(cid>1)cid--;cid+='';render_large(cid,'animated bounceInLeft')})
+	render();
+</script>
+</body>
+</html>
